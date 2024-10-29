@@ -1,28 +1,33 @@
 from transformers import (
     AutoTokenizer,
     AutoModelForSequenceClassification,
-    AutoModel,
-    default_data_collator,
     TrainingArguments,
     Trainer,
     DataCollatorWithPadding,
 )
-from torch.utils.data import DataLoader
 from peft import PeftModel, PeftConfig, get_peft_model, LoraConfig
-import evaluate
-import torch
 import numpy as np
 
 from src.dataset import AmazonDataset
-
+from src.utils import set_seed
 
 def train():
-
-    model_checkpoint = 'roberta-base'
+    
+    set_seed(42)
+    model_checkpoint = 'bert-base-cased'
+    
+    # hyperparameters
+    lr = 1e-3
+    batch_size = 128
+    num_epochs = 10
+    
     tokenizer =  AutoTokenizer.from_pretrained(model_checkpoint, add_prefix_space=True)
     # tokenizer.truncation_side = "left"
-    
-    dataset = AmazonDataset(tokenizer = tokenizer, debug = False)
+
+    dataset = AmazonDataset(tokenizer = tokenizer,
+                            max_length = 128,
+                            max_train_samples = 10000,
+                            max_test_samples = 1000)    
     
     model = AutoModelForSequenceClassification.from_pretrained(
         model_checkpoint, 
@@ -33,12 +38,6 @@ def train():
     
     data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=8)
     # data_collator =  default_data_collator
-    
-    # accuracy = evaluate.load("accuracy")
-     # def compute_metrics(p):
-    #     predictions, labels = p
-    #     predictions = np.argmax(predictions, axis=1)
-    #     return {"accuracy": accuracy.compute(predictions=predictions, references=labels)}
     
     def compute_metrics(p):
         preds = p.predictions[0] if isinstance(p.predictions, tuple) else p.predictions
@@ -53,15 +52,9 @@ def train():
     
     
     model = get_peft_model(model, peft_config)
-    
     model.print_trainable_parameters()
-    
-    # hyperparameters
-    lr = 1e-3
-    batch_size = 128
-    num_epochs = 10
-    
-    
+
+        
     # define training arguments
     training_args = TrainingArguments(
         output_dir = "checkpoint/"+model_checkpoint + "-lora-text-classification",
@@ -88,6 +81,10 @@ def train():
 
     # train model
     trainer.train()
+    trainer.save_model()
+    
+    # eval
+    trainer.evaluate()
     
 if __name__ == '__main__':
     train()

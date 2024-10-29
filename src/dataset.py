@@ -7,14 +7,21 @@ class AmazonDataset:
     def __init__(self, 
                  tokenizer, 
                  max_length = 128,
-                 debug = False):
+                 max_train_samples = None,
+                max_test_samples = None):
         
         
         self.id2label = {0: "negative", 1: "positive"}
         self.label2id = {"negative": 0, "positive": 1}
         
-        self.train_raw_dataset = pd.read_csv('data/train_cleaned.csv') if not debug else pd.read_csv('data/train_cleaned.csv').head(1000)
-        self.test_raw_dataset = pd.read_csv('data/test_cleaned.csv') if not debug else pd.read_csv('data/test_cleaned.csv').head(1000)
+        self.train_raw_dataset = pd.read_csv('data/train_cleaned.csv')
+        self.test_raw_dataset = pd.read_csv('data/test_cleaned.csv')
+        
+        if max_train_samples:
+            self.train_raw_dataset = self.train_raw_dataset.sample(n = max_train_samples)
+        
+        if max_test_samples:
+            self.test_raw_dataset = self.test_raw_dataset.sample(n = max_test_samples)
         
         self.dataset = DatasetDict({
             'train': Dataset.from_pandas(self.train_raw_dataset),

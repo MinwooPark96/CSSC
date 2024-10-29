@@ -36,3 +36,4 @@ Run `preprocess.ipynb` to clean data.
 - https://github.com/a16z-infra/llama2-chatbot
 - https://www.kaggle.com/code/micaeld/amazon-reviews-with-tensorflow
 - https://github.com/fshnkarimi/Fine-tuning-an-LLM-using-LoRA
+- https://github.com/huggingface/transformers/blob/main/examples/pytorch/text-classification/run_glue.py
