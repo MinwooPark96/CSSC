@@ -1,4 +1,8 @@
 # minwoo
+wandb/
+checkpoint/
+note.ipynb
+idea.md
 *.csv
 *.zip
 *.tgz
