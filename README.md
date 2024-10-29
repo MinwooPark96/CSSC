@@ -2,8 +2,6 @@
 
 A customer service chatbot that analyzes customer emotions in real time, adjusting its support style or response accordingly. If the customer appears upset, the chatbot sends calming messages, and if the customer shows a positive reaction, it automatically responds to reinforce and maintain that positivity.
 
----
-
 ### Environment
 
 ```python
@@ -14,7 +12,6 @@ pip install torch==2.0.1+cu117 torchvision==0.15.2+cu117 torchaudio==2.0.2 --ind
 pip install -r requirements.txt
 ```
 
----
 
 ### Traing Dataset
 
@@ -27,6 +24,15 @@ unzip archive.zip
 ```
 
 Run `preprocess.ipynb` to clean data.
+
+### Run
+
+```bash
+streamlit run app.py
+```
+
+### Architecture
+We train Bert-base model to finetune, using LoRA.
 
 ---
 

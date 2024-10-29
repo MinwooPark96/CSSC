@@ -1,4 +1,5 @@
 # minwoo
+storage/
 wandb/
 checkpoint/
 note.ipynb
