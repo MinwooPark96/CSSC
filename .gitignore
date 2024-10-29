@@ -1,9 +1,11 @@
 # minwoo
 *.csv
+*.zip
+*.tgz
 
 .DS_Store
 .vector_cache/
-.data/
+# .data/
 # models/
 
 # Byte-compiled / optimized / DLL files
