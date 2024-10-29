@@ -6,10 +6,17 @@ A customer service chatbot that analyzes customer emotions in real time, adjusti
 
 ### Traing Dataset
 
-Amazon Review Polarity Dataset contains 34,686,770 Amazon reviews from 6,643,669 users on 2,441,053 products, from the Stanford Network Analysis Project (SNAP). This subset contains 1,800,000 training samples and 200,000 testing samples in each polarity sentiment. See more details on https://www.kaggle.com/datasets/kritanjalijain/amazon-reviews
+Amazon Review Polarity Dataset contains 34,686,770 Amazon reviews from 6,643,669 users on 2,441,053 products, from the Stanford Network Analysis Project (SNAP). This subset contains 1,800,000 training samples and 200,000 testing samples in each polarity sentiment. See more details on https://www.kaggle.com/datasets/kritanjalijain/amazon-reviews. To install,
+
+```bash
+cd data
+./source.sh
+unzip archive.zip
+```
 
 ---
 
 ### REFERENCE 
 
 - https://github.com/dataprofessor/llama2?tab=readme-ov-file
+- https://github.com/a16z-infra/llama2-chatbot
