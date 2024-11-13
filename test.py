@@ -1,9 +1,14 @@
+
 import streamlit as st
 import replicate
 import os
+import time  # 추가된 모듈
 
 # App title
 st.set_page_config(page_title="🤖 Chatbot")
+
+# Markdown file path
+MEMO_FILE_PATH = "responses.md"  # 답변이 저장된 마크다운 파일의 경로
 
 # Replicate Credentials
 with st.sidebar:
@@ -21,7 +26,34 @@ with st.sidebar:
     st.markdown('📖 Learn how to build this app in this [blog](https://blog.streamlit.io/how-to-build-a-llama-2-chatbot/)!')
 os.environ['REPLICATE_API_TOKEN'] = replicate_api
 
-# Store LLM generated responses
+# Load responses from markdown file
+def load_responses():
+    responses = {}
+    with open(MEMO_FILE_PATH, 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+        current_question = None
+        current_answer = []
+        
+        for line in lines:
+            if line.startswith("# "):  # 질문을 '#'로 구분
+                if current_question:
+                    responses[current_question.strip()] = ''.join(current_answer).strip()
+                current_question = line[2:].strip()  # '#' 이후를 질문으로 사용
+                current_answer = []
+            else:
+                current_answer.append(line)
+        
+        # 마지막 질문 저장
+        if current_question:
+            responses[current_question.strip()] = ''.join(current_answer).strip()
+    
+    return responses
+
+# Store responses in session state
+if "responses" not in st.session_state:
+    st.session_state.responses = load_responses()
+
+# Store chat messages
 if "messages" not in st.session_state.keys():
     st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
 
@@ -34,6 +66,13 @@ def clear_chat_history():
     st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
 st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
 
+
+# Sentiment Analysis Toggle
+with st.sidebar:
+    # Checkbox for sentimental analysis with chat history clearing on toggle
+    sentiment_analysis = st.checkbox("Turn on sentimental analysis", on_change=clear_chat_history)
+
+
 def generate_llama2_response(prompt_input):
     string_dialogue = "You are a helpful assistant. You do not respond as 'User' or pretend to be 'User'. You only respond once as 'Assistant'."
     for dict_message in st.session_state.messages:
@@ -42,14 +81,22 @@ def generate_llama2_response(prompt_input):
         else:
             string_dialogue += "Assistant: " + dict_message["content"] + "\n\n"
     
-    output = replicate.run('a16z-infra/llama7b-v2-chat:4f0a4744c7295c024a1de15e1a63c880d3da035fa1f49bfd344fe076074c8eea', 
-                           input={"prompt": f"{string_dialogue} {prompt_input} Assistant: ",
-                                  "temperature":0.1, "top_p":0.9, "max_length":512, "repetition_penalty":0})
-    
-    # output = replicate.run('a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5', 
-    #                        input={"prompt": f"{string_dialogue} {prompt_input} Assistant: ",
-    #                               "temperature":0.1, "top_p":0.9, "max_length":512, "repetition_penalty":1})
-    return output
+    output = replicate.run(
+        'a16z-infra/llama7b-v2-chat:4f0a4744c7295c024a1de15e1a63c880d3da035fa1f49bfd344fe076074c8eea',
+        input={
+            "prompt": f"{string_dialogue} {prompt_input} Assistant: ",
+            "temperature": 0.1, "top_p": 0.9, "max_length": 512, "repetition_penalty": 0
+        }
+    )
+    return ''.join(output)
+
+def get_response(user_input):
+    responses = st.session_state.responses
+    if user_input in responses:
+        time.sleep(2)  
+        return responses[user_input]
+    else:
+        return generate_llama2_response(user_input)
 
 # User-provided prompt
 if prompt := st.chat_input(disabled=not replicate_api):
@@ -61,12 +108,7 @@ if prompt := st.chat_input(disabled=not replicate_api):
 if st.session_state.messages[-1]["role"] != "assistant":
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            response = generate_llama2_response(prompt)
-            placeholder = st.empty()
-            full_response = ''
-            for item in response:
-                full_response += item
-                placeholder.markdown(full_response)
-            placeholder.markdown(full_response)
-    message = {"role": "assistant", "content": full_response}
+            response = get_response(prompt)
+            st.write(response)
+    message = {"role": "assistant", "content": response}
     st.session_state.messages.append(message)
